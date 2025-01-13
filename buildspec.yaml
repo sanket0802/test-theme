@@ -1,0 +1,22 @@
+version: 0.2
+phases:
+  build:
+    commands:
+      - echo "Update AWS CLI"
+      - pip3 uninstall -y awscli
+      - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+      - unzip awscliv2.zip
+      - sudo ./aws/install --update
+      - export PATH=$PATH:/usr/local/bin
+      - echo "Install Kubectl"
+      - curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.21.2/2021-07-05/bin/linux/amd64/kubectl
+      - chmod +x ./kubectl
+      - mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$PATH:$HOME/bin
+      - echo 'export PATH=$PATH:$HOME/bin' >> ~/.bashrc
+      - kubectl version --client
+  post_build:
+    commands:
+      - echo "Update Kube Config"      
+      - aws eks update-kubeconfig --name demo-eks-cluster
+      - echo "Apply changes to kube manifests"
+      - kubectl apply -f busybox-deployment.yaml
